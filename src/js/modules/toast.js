@@ -6,6 +6,7 @@ function toast(msg, time){
     this.createToast();
     this.showToast();
 }
+
 toast.prototype = {
     createToast: function(){
         var tpl = '<div class="toast">'+this.msg+'</div>';
