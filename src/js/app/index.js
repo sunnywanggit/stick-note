@@ -1,5 +1,11 @@
-const {Toast} = require('../modules/toast')
+require('less/index.less');
+const $ = require('jquery')
+let NoteManager = require('../modules/note-manager.js').NoteManager;
+let Event = require('../modules/event.js');
+let WaterFall = require('../modules/waterfall.js');
 
-Toast('hello')
+NoteManager.load();
 
-console.log('ddd')
+$('.add-note').on('click', function() { NoteManager.add(); })
+
+Event.on('waterfall', function(){ WaterFall.init($('#content')); })

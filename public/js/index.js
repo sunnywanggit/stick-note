@@ -104,7 +104,40 @@ eval("var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!\n * jQ
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const {Toast} = __webpack_require__(/*! ../modules/toast */ \"./src/js/modules/toast.js\")\n\nToast('hello')\n\nconsole.log('ddd')\n\n\n//# sourceURL=webpack:///./src/js/app/index.js?");
+eval("__webpack_require__(/*! less/index.less */ \"./src/less/index.less\");\nconst $ = __webpack_require__(/*! jquery */ \"./node_modules/jquery/dist/jquery.js\")\nlet NoteManager = __webpack_require__(/*! ../modules/note-manager.js */ \"./src/js/modules/note-manager.js\").NoteManager;\nlet Event = __webpack_require__(/*! ../modules/event.js */ \"./src/js/modules/event.js\");\nlet WaterFall = __webpack_require__(/*! ../modules/waterfall.js */ \"./src/js/modules/waterfall.js\");\n\nNoteManager.load();\n\n$('.add-note').on('click', function() { NoteManager.add(); })\n\nEvent.on('waterfall', function(){ WaterFall.init($('#content')); })\n\n\n//# sourceURL=webpack:///./src/js/app/index.js?");
+
+/***/ }),
+
+/***/ "./src/js/modules/event.js":
+/*!*********************************!*\
+  !*** ./src/js/modules/event.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("const EventCenter = (function(){\n\n    let events = {};\n\n    function on(event, handler){\n        events[event] = events[event] || [];\n        events[event].push({ handler: handler });\n    }\n\n    function fire(event, args){\n        if(!events[event]){ return; }\n        for(let i=0; i<events[event].length; i++){ events[event][i].handler(args); }\n    }\n\n    return { on, fire } })();\n\nmodule.exports = EventCenter;\n\n\n\n\n\n// EventCenter.on('text-change', function(data){\n//  console.log(data);\n// });\n\n// EventCenter.on('text-change', function(data){\n//  alert(1);\n// });\n\n\n// EventCenter.fire('text-change', 100);\n\n\n//# sourceURL=webpack:///./src/js/modules/event.js?");
+
+/***/ }),
+
+/***/ "./src/js/modules/note-manager.js":
+/*!****************************************!*\
+  !*** ./src/js/modules/note-manager.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("let Note = __webpack_require__(/*! ./note.js */ \"./src/js/modules/note.js\").Note\nlet Toast = __webpack_require__(/*! ./toast.js */ \"./src/js/modules/toast.js\").Toast\nlet Event = __webpack_require__(/*! ./event.js */ \"./src/js/modules/event.js\")\nconst $ = __webpack_require__(/*! jquery */ \"./node_modules/jquery/dist/jquery.js\")\n\n\nlet NoteManager = (function () {\n    function load() {\n        $.get('/api/notes')\n            .done(function (ret) {\n                if (ret.status === 0) {\n                    $.each(ret.data, function (idx, article) {\n                        new Note({id: article.id, context: article.text, username: article.username})\n                    })\n                    Event.fire('waterfall')\n                } else {\n                    Toast(ret.errorMsg)\n                }\n            })\n            .fail(function () { Toast('网络异常') })\n    }\n\n    function add() { new Note() }\n\n    // load 获取数据 add 添加\n    return {load: load, add: add}\n\n})()\n\nmodule.exports.NoteManager = NoteManager\n\n\n//# sourceURL=webpack:///./src/js/modules/note-manager.js?");
+
+/***/ }),
+
+/***/ "./src/js/modules/note.js":
+/*!********************************!*\
+  !*** ./src/js/modules/note.js ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("__webpack_require__(/*! less/note.less */ \"./src/less/note.less\");\n\nconst Toast = __webpack_require__(/*! ./toast.js */ \"./src/js/modules/toast.js\").Toast;\nconst Event = __webpack_require__(/*! ./event.js */ \"./src/js/modules/event.js\");\nconst $ = __webpack_require__(/*! jquery */ \"./node_modules/jquery/dist/jquery.js\")\n\n\nfunction Note(opts){\n    this.initOpts(opts);\n    this.createNote();\n    this.setStyle();\n    this.bindEvent();\n}\nNote.prototype = {\n    colors: [\n        ['#ea9b35','#efb04e'], // headColor, containerColor\n        ['#dd598b','#e672a2'],\n        ['#eee34b','#f2eb67'],\n        ['#c24226','#d15a39'],\n        ['#c1c341','#d0d25c'],\n        ['#3f78c3','#5591d2']\n    ],\n\n    defaultOpts: {\n        id: '',   //Note的 id\n        $ct: $('#content').length>0?$('#content'):$('body'),  //默认存放 Note 的容器\n        context: 'input here'  //Note 的内容\n    },\n\n    initOpts: function (opts) {\n        this.opts = $.extend({}, this.defaultOpts, opts||{});\n        if(this.opts.id){\n            this.id = this.opts.id;\n        }\n    },\n\n    createNote: function () {\n        var tpl =  '<div class=\"note\">'\n            + '<div class=\"note-head\"><span class=\"username\"></span><span class=\"delete\">&times;</span></div>'\n            + '<div class=\"note-ct\" contenteditable=\"true\"></div>'\n            +'</div>';\n        this.$note = $(tpl);\n        this.$note.find('.note-ct').text(this.opts.context);\n        this.$note.find('.username').text(this.opts.username);\n        this.opts.$ct.append(this.$note);\n        if(!this.id)  this.$note.css('bottom', '10px');  //新增放到右边\n    },\n\n    setStyle: function () {\n        var color = this.colors[Math.floor(Math.random()*6)];\n        this.$note.find('.note-head').css('background-color', color[0]);\n        this.$note.find('.note-ct').css('background-color', color[1]);\n    },\n\n    setLayout: function(){\n        var self = this;\n        if(self.clk){ clearTimeout(self.clk); }\n        self.clk = setTimeout(function(){ Event.fire('waterfall'); },100);\n    },\n\n    bindEvent: function () {\n        var self = this,\n            $note = this.$note,\n            $noteHead = $note.find('.note-head'),\n            $noteCt = $note.find('.note-ct'),\n            $delete = $note.find('.delete');\n\n        $delete.on('click', function(){ self.delete(); })\n\n        //contenteditable没有 change 事件，所有这里做了模拟通过判断元素内容变动，执行 save\n        $noteCt.on('focus', function() {\n            if($noteCt.html()=='input here') $noteCt.html('');\n            $noteCt.data('before', $noteCt.html());\n        }).on('blur paste', function() {\n            if( $noteCt.data('before') != $noteCt.html() ) {\n                $noteCt.data('before',$noteCt.html());\n                self.setLayout();\n                if(self.id){\n                    self.edit($noteCt.html())\n                }else{\n                    self.add($noteCt.html())\n                }\n            }\n        });\n\n        //设置笔记的移动\n        $noteHead.on('mousedown', function(e){\n            var evtX = e.pageX - $note.offset().left,   //evtX 计算事件的触发点在 dialog内部到 dialog 的左边缘的距离\n                evtY = e.pageY - $note.offset().top;\n            $note.addClass('draggable').data('evtPos', {x:evtX, y:evtY}); //把事件到 dialog 边缘的距离保存下来\n        }).on('mouseup', function(){\n            $note.removeClass('draggable').removeData('pos');\n        });\n\n        $('body').on('mousemove', function(e){\n            $('.draggable').length && $('.draggable').offset({\n                top: e.pageY-$('.draggable').data('evtPos').y,    // 当用户鼠标移动时，根据鼠标的位置和前面保存的距离，计算 dialog 的绝对位置\n                left: e.pageX-$('.draggable').data('evtPos').x\n            });\n        });\n    },\n\n    edit: function (msg) {\n        var self = this;\n        $.post('/api/notes/edit',{ id: this.id, note: msg }).done(function(ret){\n            if(ret.status === 0){ Toast('update success'); }else{ Toast(ret.errorMsg); }\n        })\n    },\n\n    add: function (msg){\n        console.log('addd...');\n        var self = this;\n        $.post('/api/notes/add', {note: msg})\n            .done(function(ret){\n                if(ret.status === 0){ Toast('add success');\n                }else{ self.$note.remove(); Event.fire('waterfall'); Toast(ret.errorMsg); }\n            });\n        //todo\n    },\n\n    delete: function(){\n        var self = this;\n        $.post('/api/notes/delete', {id: this.id})\n            .done(function(ret){\n                if(ret.status === 0){\n                    Toast('delete success');\n                    self.$note.remove();\n                    Event.fire('waterfall')\n                }else{\n                    Toast(ret.errorMsg);\n                }\n            });\n    }\n\n};\n\nmodule.exports.Note = Note;\n\n\n\n//# sourceURL=webpack:///./src/js/modules/note.js?");
 
 /***/ }),
 
@@ -116,6 +149,39 @@ eval("const {Toast} = __webpack_require__(/*! ../modules/toast */ \"./src/js/mod
 /***/ (function(module, exports, __webpack_require__) {
 
 eval("\n__webpack_require__(/*! less/toast.less */ \"./src/less/toast.less\")\n\nconst $ = __webpack_require__(/*! jquery */ \"./node_modules/jquery/dist/jquery.js\")\n\n\nfunction toast(msg, time){\n    this.msg = msg;\n    this.dismissTime = time||1000;  //ms\n    this.createToast();\n    this.showToast();\n}\n\ntoast.prototype = {\n    createToast: function(){\n        var tpl = '<div class=\"toast\">'+this.msg+'</div>';\n        this.$toast = $(tpl);\n        $('body').append(this.$toast);\n    },\n    showToast: function(){\n        var self = this;\n        this.$toast.fadeIn(300, function(){\n            setTimeout(function(){\n                self.$toast.fadeOut(300,function(){\n                    self.$toast.remove();\n                });\n            }, self.dismissTime);\n        });\n\n    }\n};\n\nfunction Toast(msg,time){\n    return new toast(msg, time);\n}\n\nmodule.exports.Toast = Toast;\n\n\n//# sourceURL=webpack:///./src/js/modules/toast.js?");
+
+/***/ }),
+
+/***/ "./src/js/modules/waterfall.js":
+/*!*************************************!*\
+  !*** ./src/js/modules/waterfall.js ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("\nconst $ = __webpack_require__(/*! jquery */ \"./node_modules/jquery/dist/jquery.js\")\nconst WaterFall = (function(){\n    let $ct;\n    let $items;\n\n    function render($c){\n        $ct = $c;\n        $items = $ct.children();\n\n        let nodeWidth = $items.outerWidth(true),\n            colNum = parseInt($(window).width()/nodeWidth),\n            colSumHeight = [];\n\n        for(let i = 0; i<colNum;i++){ colSumHeight.push(0); }\n\n        $items.each(function(){\n            let $cur = $(this);\n            //colSumHeight = [100, 250, 80, 200]\n            let idx = 0,\n                minSumHeight = colSumHeight[0];\n\n            for(let i=0;i<colSumHeight.length; i++){\n                if(colSumHeight[i] < minSumHeight){\n                    idx = i;\n                    minSumHeight = colSumHeight[i];\n                }\n            }\n\n            $cur.css({ left: nodeWidth*idx, top: minSumHeight });\n            colSumHeight[idx] = $cur.outerHeight(true) + colSumHeight[idx];\n        });\n    }\n\n    $(window).on('resize', function(){ render($ct); })\n\n    return { init: render }\n})();\n\nmodule.exports = WaterFall\n\n\n\n//# sourceURL=webpack:///./src/js/modules/waterfall.js?");
+
+/***/ }),
+
+/***/ "./src/less/index.less":
+/*!*****************************!*\
+  !*** ./src/less/index.less ***!
+  \*****************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("// removed by extract-text-webpack-plugin\n\n//# sourceURL=webpack:///./src/less/index.less?");
+
+/***/ }),
+
+/***/ "./src/less/note.less":
+/*!****************************!*\
+  !*** ./src/less/note.less ***!
+  \****************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("// removed by extract-text-webpack-plugin\n\n//# sourceURL=webpack:///./src/less/note.less?");
 
 /***/ }),
 
