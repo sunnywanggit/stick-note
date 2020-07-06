@@ -23,7 +23,7 @@ router.post('/notes/edit', function (request, response, next) {
 })
 
 router.post('/notes/delete', function (request, response, next) {
-    response.send('respond with a resource')
+    Note.destory({where:{id:request.body.id}}).then(function () { response.send({status:0}) })
 })
 
 module.exports = router
