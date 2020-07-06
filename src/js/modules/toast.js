@@ -1,6 +1,8 @@
-// require('less/toast.less');
+
+require('less/toast.less')
 
 const $ = require('jquery')
+
 
 function toast(msg, time){
     this.msg = msg;

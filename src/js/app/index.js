@@ -2,4 +2,4 @@ const {Toast} = require('../modules/toast')
 
 Toast('hello')
 
-console.log('ccc')
+console.log('ddd')
