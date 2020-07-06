@@ -1,3 +1,5 @@
-const result = require('../modules/b.js')
+const {Toast} = require('../modules/toast')
 
-console.log(result);
+Toast('hello')
+
+console.log('ccc')

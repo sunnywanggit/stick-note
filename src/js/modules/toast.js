@@ -1,5 +1,7 @@
 // require('less/toast.less');
 
+const $ = require('jquery')
+
 function toast(msg, time){
     this.msg = msg;
     this.dismissTime = time||1000;  //ms
