@@ -20,6 +20,8 @@
     "less-loader": "^6.2.0",
     "morgan": "~1.9.1",
     "postcss-loader": "^3.0.0",
+    "sequelize": "^6.3.0",
+    "sqlite3": "^5.0.0",
     "style-loader": "^1.2.1"
   },
   "devDependencies": {
