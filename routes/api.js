@@ -11,20 +11,19 @@ router.get('/notes', function (request, response, next) {
 })
 
 router.post('/notes/add', function (request,response, next) {
-    let note = request.body.note
-    Note.create({text:note}).then(function () {
+    Note.create({text:request.body.note}).then(function () {
         response.send({status:0})
-    }).catch(function (err) {
-        response.send({status:1,errMag:err})
+    }).catch(function (err) { response.send({status:1,errMag:err}) })
+})
+
+router.post('/notes/edit', function (request, response, next) {
+    Note.update({text:request.body.note},{where:{id:request.body.id}}).then(function () {
+        response.send({status:0})
     })
 })
 
-router.post('/notes/edit', function (req, res, next) {
-    res.send('respond with a resource')
-})
-
-router.post('/notes/delete', function (req, res, next) {
-    res.send('respond with a resource')
+router.post('/notes/delete', function (request, response, next) {
+    response.send('respond with a resource')
 })
 
 module.exports = router
